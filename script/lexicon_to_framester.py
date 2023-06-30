@@ -1,8 +1,3 @@
-import pandas as pd
-from rdflib import Graph, Namespace, URIRef, Literal, RDF, RDFS
-import urllib.parse
-from tqdm import tqdm
-
 # This script takes as input a csv file (corresponding to Polifonia Lexicon in a given language) and creates an RDF file in Turtle format.
 
 # The csv file must contain the following columns:
@@ -39,10 +34,15 @@ from tqdm import tqdm
 # The script uses the following classes and properties from the BabelNet namespace:
 # - bn: (prefix for BabelNet IDs)
 
+from rdflib import Graph, Literal, Namespace, RDF, URIRef
+import pandas as pd
+from tqdm import tqdm
+import urllib
+
 def create_rdf(input_file, output_file, lang, logic):
     # create namespaces for URIs
-    n_babel = Namespace("http://babelnet.org/rdf/bn:")
-    n_framester = Namespace("https://w3id.org/framester/resource/polifonia/")
+    n_babel = Namespace("http://babelnet.org/rdf/")
+    n_polifonia = Namespace("https://w3id.org/framester/resource/polifonia/")
 
     # initialize an RDF Graph
     g = Graph()
@@ -52,14 +52,14 @@ def create_rdf(input_file, output_file, lang, logic):
     rdfs = Namespace("http://www.w3.org/2000/01/rdf-schema#")
 
     # define framester schema namespace
-    fs = Namespace("https://w3id.org/framester/schema/fschema:")
-    fs.Synset = URIRef('https://w3id.org/framester/schema/fschema:Synset')
+    fs = Namespace("https://w3id.org/framester/schema/")
 
     # Bind the namespace to a prefix
     g.bind("bn", n_babel)
     g.bind("fschema", fs)
     g.bind("rdf", rdf)
     g.bind("rdfs", rdfs)
+    g.bind("polifonia", n_polifonia)  # Added this line
 
     # read the csv using pandas
     df = pd.read_csv(input_file, sep=',', header=0)
@@ -80,26 +80,26 @@ def create_rdf(input_file, output_file, lang, logic):
 
         # create your resources and add them to the graph
         synset = URIRef(n_babel[id])
-        g.add((synset, RDF.type, fs.Synset))
 
         if logic == 'automatic':
             sense = URIRef(n_babel[encoded_label + "_" + lang_encoded + "/" + id])
             lexical_unit = URIRef(n_babel[encoded_label + "_n_" + lang_encoded])
         elif logic == 'manual':
-            sense = URIRef(n_framester["Sense/" + encoded_label + '_' + lang_encoded])
-            lexical_unit = URIRef(n_framester["LexicalUnit/" + encoded_label + "_" + pos_encoded + "_" + lang_encoded])
+            sense = URIRef(n_polifonia[encoded_label + '_' + lang_encoded])
+            lexical_unit = URIRef(n_polifonia[encoded_label + "_" + pos_encoded + "_" + lang_encoded])
         else:
             raise ValueError('Invalid logic. Choose either "automatic" or "manual".')
 
-        g.add((sense, RDF.type, fs.Sense))
-        g.add((synset, fs.containsSense, sense))
-
-        g.add((lexical_unit, RDF.type, fs.LexicalUnit))
-        g.add((sense, fs.isExpressedByLexicalUnit, lexical_unit))
-
-        g.add((sense, rdfs.label, Literal(label)))
-        g.add((lexical_unit, rdfs.label, Literal(label)))
+        g.add((synset, RDF.type, fs['Synset']))
         g.add((synset, rdfs.comment, Literal(description)))
+        g.add((synset, fs['containsSense'], sense))
+
+        g.add((sense, RDF.type, fs['Sense']))
+        g.add((sense, rdfs.label, Literal(label)))
+        g.add((sense, fs['isExpressedByLexicalUnit'], lexical_unit))
+
+        g.add((lexical_unit, RDF.type, fs['LexicalUnit']))
+        g.add((lexical_unit, rdfs.label, Literal(label)))
 
         # Update the progress bar
         progress_bar.update(1)
@@ -110,18 +110,19 @@ def create_rdf(input_file, output_file, lang, logic):
     # Close the progress bar
     progress_bar.close()
 
+
 # define your list of tuples
 rdf_args = [
-    ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.2/output_IT_manual_turtle.rdf', 'IT', 'manual'),
-    ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.2/output_ES_manual_turtle.rdf', 'ES', 'manual'),
-    ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.2/output_FR_manual_turtle.rdf', 'FR', 'manual'),
-    ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.2/output_NL_manual_turtle.rdf', 'NL', 'manual'),
-    ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.2/output_IT_automatic_turtle.rdf', 'IT', 'automatic'),
-    ('input/csv_for_rdf/automatic_EN_filtered.csv', 'output/release_v0.2/output_EN_automatic_turtle.rdf', 'EN', 'automatic'),
-    ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.2/output_ES_automatic_turtle.rdf', 'ES', 'automatic'),
-    ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.2/output_FR_automatic_turtle.rdf', 'FR', 'automatic'),
-    ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.2/output_DE_automatic_turtle.rdf', 'DE', 'automatic'),
-    ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.2/output_NL_automatic_turtle.rdf', 'NL', 'automatic')
+    ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.2/output_IT_manual_turtle.ttl', 'IT', 'manual'),
+    ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.2/output_ES_manual_turtle.ttl', 'ES', 'manual'),
+    ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.2/output_FR_manual_turtle.ttl', 'FR', 'manual'),
+    ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.2/output_NL_manual_turtle.ttl', 'NL', 'manual'),
+    ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.2/output_IT_automatic_turtle.ttl', 'IT', 'automatic'),
+    ('input/csv_for_rdf/automatic_EN_filtered.csv', 'output/release_v0.2/output_EN_automatic_turtle.ttl', 'EN', 'automatic'),
+    ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.2/output_ES_automatic_turtle.ttl', 'ES', 'automatic'),
+    ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.2/output_FR_automatic_turtle.ttl', 'FR', 'automatic'),
+    ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.2/output_DE_automatic_turtle.ttl', 'DE', 'automatic'),
+    ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.2/output_NL_automatic_turtle.ttl', 'NL', 'automatic')
 ]
 
 # iterate over the list of tuples, calling create_rdf() for each one
