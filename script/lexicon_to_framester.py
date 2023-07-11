@@ -62,31 +62,41 @@ def create_rdf(input_file, output_file, lang, logic):
     g.bind("polifonia", n_polifonia)  # Added this line
 
     # read the csv using pandas
-    df = pd.read_csv(input_file, sep=',', header=0)
+    df = pd.read_csv(input_file, header=0)
+
+    # Ensure necessary columns exist
+    required_columns = ['bn:id', 'pos', 'definition', f'lemmata {lang}']
+    for col in required_columns:
+        if col not in df.columns:
+            raise ValueError(f"Input file is missing required column: {col}")
 
     # Create a progress bar with tqdm
     progress_bar = tqdm(total=len(df), desc='Processing rows', ncols=100)
 
     for index, row in df.iterrows():
         id = str(row['bn:id']).replace("bn:", "s")
-        pos = str(row['pos'])
+
+        # Check for NaN 'pos' values
+        if pd.isna(row['pos']):
+            pos = 'n'
+        else:
+            pos = str(row['pos'])
+
         description = str(row['definition'])
         label = str(row[f'lemmata {lang}'])
 
         # URL encode the label
         encoded_label = urllib.parse.quote(label)
-        pos_encoded = urllib.parse.quote(pos)
-        lang_encoded = urllib.parse.quote(lang)
 
         # create your resources and add them to the graph
         synset = URIRef(n_babel[id])
 
         if logic == 'automatic':
-            sense = URIRef(n_babel[encoded_label + "_" + lang_encoded + "/" + id])
-            lexical_unit = URIRef(n_babel[encoded_label + "_n_" + lang_encoded])
+            sense = URIRef(n_babel[encoded_label + "_" + lang + "/" + id])
+            lexical_unit = URIRef(n_babel[encoded_label + "_" + pos + "_" + lang])
         elif logic == 'manual':
-            sense = URIRef(n_polifonia[encoded_label + '_' + lang_encoded])
-            lexical_unit = URIRef(n_polifonia[encoded_label + "_" + pos_encoded + "_" + lang_encoded])
+            sense = URIRef(n_polifonia[encoded_label + '_' + lang])
+            lexical_unit = URIRef(n_polifonia[encoded_label + "_" + pos + "_" + lang])
         else:
             raise ValueError('Invalid logic. Choose either "automatic" or "manual".')
 
@@ -110,19 +120,18 @@ def create_rdf(input_file, output_file, lang, logic):
     # Close the progress bar
     progress_bar.close()
 
-
 # define your list of tuples
 rdf_args = [
-    ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.2/output_IT_manual_turtle.ttl', 'IT', 'manual'),
-    ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.2/output_ES_manual_turtle.ttl', 'ES', 'manual'),
-    ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.2/output_FR_manual_turtle.ttl', 'FR', 'manual'),
-    ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.2/output_NL_manual_turtle.ttl', 'NL', 'manual'),
-    ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.2/output_IT_automatic_turtle.ttl', 'IT', 'automatic'),
-    ('input/csv_for_rdf/automatic_EN_filtered.csv', 'output/release_v0.2/output_EN_automatic_turtle.ttl', 'EN', 'automatic'),
-    ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.2/output_ES_automatic_turtle.ttl', 'ES', 'automatic'),
-    ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.2/output_FR_automatic_turtle.ttl', 'FR', 'automatic'),
-    ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.2/output_DE_automatic_turtle.ttl', 'DE', 'automatic'),
-    ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.2/output_NL_automatic_turtle.ttl', 'NL', 'automatic')
+    ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.3/output_IT_manual_turtle.ttl', 'IT', 'manual'),
+    ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.3/output_ES_manual_turtle.ttl', 'ES', 'manual'),
+    ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.3/output_FR_manual_turtle.ttl', 'FR', 'manual'),
+    ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.3/output_NL_manual_turtle.ttl', 'NL', 'manual'),
+    ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.3/output_IT_automatic_turtle.ttl', 'IT', 'automatic'),
+    ('input/csv_for_rdf/automatic_EN_filtered.csv', 'output/release_v0.3/output_EN_automatic_turtle.ttl', 'EN', 'automatic'),
+    ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.3/output_ES_automatic_turtle.ttl', 'ES', 'automatic'),
+    ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.3/output_FR_automatic_turtle.ttl', 'FR', 'automatic'),
+    ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.3/output_DE_automatic_turtle.ttl', 'DE', 'automatic'),
+    ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.3/output_NL_automatic_turtle.ttl', 'NL', 'automatic')
 ]
 
 # iterate over the list of tuples, calling create_rdf() for each one
