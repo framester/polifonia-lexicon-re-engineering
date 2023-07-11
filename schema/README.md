@@ -2,11 +2,7 @@
 
 # OWL version
 
-Certainly, here is a brief documentation of your OWL ontology:
-
-# OWL Ontology Documentation
-
-This OWL ontology is derived from a set of RDF triples that describe musical concepts and their relationships. It uses terms from the following vocabularies:
+This OWL ontology is derived from the re-engineered Polifonia Lexicon's triples stored in the dedicated RDF files (releases [here](https://github.com/framester/polifonia-lexicon-re-engineering/blob/main/schema/pl_EN_ont.owl)). Below, the prefixes used:
 
 - `bn:`: BabelNet (http://babelnet.org/rdf/)
 - `fschema:`: Framester schema (https://w3id.org/framester/schema/)
