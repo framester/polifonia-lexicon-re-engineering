@@ -8,6 +8,6 @@
   
 
     - Below is the schema that reports classes and properties only. Inverse properties are explicited.
-        ![schemaUltraAbstract](http://url/to/img.png)
+![schemaUltraAbst](https://github.com/framester/polifonia-lexicon-re-engineering/blob/main/schema/polifonia_lexicon_reengineering_ultraAbstractSchema.png)
 
     - Below is the schema that reports classes, properties and examples of individuals. Inverse properties are not reported.
