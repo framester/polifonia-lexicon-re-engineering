@@ -1,4 +1,4 @@
-from rdflib import Graph, Namespace
+from rdflib import Graph, Namespace, Literal, URIRef
 from rdflib.namespace import RDF, OWL
 from glob import glob
 from tqdm import tqdm
@@ -20,6 +20,12 @@ g.bind("rdfs", rdfs)
 g.bind("polifonia", polifonia)
 g.bind("wn", wn)
 
+ontology_iri = URIRef("https://w3id.org/framester/PolifoniaLexicon/schema/")
+#version_iri = URIRef("http://example.com/myOntology/1.0")
+
+g.add((ontology_iri, RDF.type, OWL.Ontology))
+g.add((ontology_iri, OWL.versionIRI, version_iri))
+
 # Declare 'containsSense' and 'isExpressedByLexicalUnit' as object properties
 g.add((fschema.containsSense, RDF.type, OWL.ObjectProperty))
 g.add((fschema.isExpressedByLexicalUnit, RDF.type, OWL.ObjectProperty))
@@ -29,10 +35,10 @@ g.add((fschema.containsSense, OWL.inverseOf, fschema.senseContainedIn))
 g.add((fschema.isExpressedByLexicalUnit, OWL.inverseOf, fschema.expressesSense))
 
 # List of Turtle files
-#all_turtle_files = glob("output/release_v0.3/*.ttl")
+all_turtle_files = glob("output/release_v0.3/*.ttl")
 
 # Filter the list to include only files with '_EN_' in the filename
-turtle_files = [file for file in all_turtle_files if ('_IT_' in file) or ('_EN_' in file) or ('_DE_' in file)]
+turtle_files = [file for file in all_turtle_files if '_EN_' in file]
 #turtle_files = [file for file in all_turtle_files if ('_IT_' in file) or ('_EN_' in file) or ('_DE_' in file)]
 
 # Load the triples from the Turtle files
@@ -43,5 +49,5 @@ for file in tqdm(turtle_files, desc="Loading files"):
 owl_data = g.serialize(format='pretty-xml')
 
 # Save the OWL data to a file
-with open('schema/pl_IT_EN_DE_ont.owl', 'w') as f:
+with open('schema/pl_EN_ont.owl', 'w') as f:
     f.write(owl_data)
