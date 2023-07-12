@@ -22,4 +22,4 @@ The repository is structured as follows:
 - `script/`: This folder contains the scripts required for the re-engineering process. It includes the following files:
   - `data_preparation.py`: A script for transforming the Polifonia Lexicon files into CSV format.
   - `lexicon_to_framester.py`: A script for converting the CSVs created from the Polifonia Lexicon into RDF data according to the Framester schema.
-  - `lexicon_to_framester.py`: A script for converting Polifonia Lexicon's RDF files into an OWL ontology ready to be imported in Protegé for further elaboration.
+  - `lexicon_kg_to_onto.py`: A script for converting Polifonia Lexicon's RDF files into an OWL ontology ready to be imported in Protegé for further elaboration.
