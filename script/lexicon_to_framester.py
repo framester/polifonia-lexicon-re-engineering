@@ -44,14 +44,13 @@ from rdflib import Graph, Literal, Namespace, RDF, URIRef
 import pandas as pd
 from tqdm import tqdm
 import urllib
-from wordnet_utils import get_wn_synset_uri
+from wordnet_utils import get_framester_uri_from_wn_synset_id
 
 
 def create_rdf(input_file, output_file, lang, logic):
     # create namespaces for URIs
     n_babel = Namespace("http://babelnet.org/rdf/")
     n_polifonia = Namespace("https://w3id.org/framester/resource/polifonia/")
-    n_wn = Namespace("https://w3id.org/framester/wn/wn30/")
     n_skos = Namespace("https://w3.org/2004/02/skos/core#")
 
     # initialize an RDF Graph
@@ -70,7 +69,6 @@ def create_rdf(input_file, output_file, lang, logic):
     g.bind("rdf", rdf)
     g.bind("rdfs", rdfs)
     g.bind("polifonia", n_polifonia)  # Added this line
-    g.bind("wn", n_wn)  
     g.bind("skos", n_skos)
 
     # read the csv using pandas
@@ -115,10 +113,10 @@ def create_rdf(input_file, output_file, lang, logic):
         wn_synset_id = row['wn_synset']
         
         if wn_synset_id and not pd.isna(wn_synset_id):
-            wn_id = get_wn_synset_uri(wn_synset_id)
-            wn_synset = URIRef(n_wn["instances/" + wn_id])
-
-            g.add((synset, n_skos["closeMatch"], wn_synset))
+            wn_synset = get_framester_uri_from_wn_synset_id(wn_synset_id)
+            
+            if wn_synset:
+                g.add((synset, n_skos["closeMatch"], URIRef(wn_synset)))
 
         g.add((synset, RDF.type, fs['Synset']))
         g.add((synset, rdfs.comment, Literal(description)))
@@ -142,16 +140,16 @@ def create_rdf(input_file, output_file, lang, logic):
 
 # define your list of tuples
 rdf_args = [
-    ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.4/output_IT_manual_turtle.ttl', 'IT', 'manual'),
-    ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.4/output_ES_manual_turtle.ttl', 'ES', 'manual'),
-    ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.4/output_FR_manual_turtle.ttl', 'FR', 'manual'),
-    ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.4/output_NL_manual_turtle.ttl', 'NL', 'manual'),
-    ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.4/output_IT_automatic_turtle.ttl', 'IT', 'automatic'),
+    # ('input/csv_for_rdf/manual_IT_filtered.csv', 'output/release_v0.4/output_IT_manual_turtle.ttl', 'IT', 'manual'),
+    # ('input/csv_for_rdf/manual_ES_filtered.csv', 'output/release_v0.4/output_ES_manual_turtle.ttl', 'ES', 'manual'),
+    # ('input/csv_for_rdf/manual_FR_filtered.csv', 'output/release_v0.4/output_FR_manual_turtle.ttl', 'FR', 'manual'),
+    # ('input/csv_for_rdf/manual_NL_filtered.csv', 'output/release_v0.4/output_NL_manual_turtle.ttl', 'NL', 'manual'),
+    # ('input/csv_for_rdf/automatic_IT_filtered.csv', 'output/release_v0.4/output_IT_automatic_turtle.ttl', 'IT', 'automatic'),
     ('input/csv_for_rdf/automatic_EN_filtered.csv', 'output/release_v0.4/output_EN_automatic_turtle.ttl', 'EN', 'automatic'),
-    ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.4/output_ES_automatic_turtle.ttl', 'ES', 'automatic'),
-    ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.4/output_FR_automatic_turtle.ttl', 'FR', 'automatic'),
-    ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.4/output_DE_automatic_turtle.ttl', 'DE', 'automatic'),
-    ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.4/output_NL_automatic_turtle.ttl', 'NL', 'automatic')
+    # ('input/csv_for_rdf/automatic_ES_filtered.csv', 'output/release_v0.4/output_ES_automatic_turtle.ttl', 'ES', 'automatic'),
+    # ('input/csv_for_rdf/automatic_FR_filtered.csv', 'output/release_v0.4/output_FR_automatic_turtle.ttl', 'FR', 'automatic'),
+    # ('input/csv_for_rdf/automatic_DE_filtered_fixed.csv', 'output/release_v0.4/output_DE_automatic_turtle.ttl', 'DE', 'automatic'),
+    # ('input/csv_for_rdf/automatic_NL_filtered.csv', 'output/release_v0.4/output_NL_automatic_turtle.ttl', 'NL', 'automatic')
 ]
 
 # iterate over the list of tuples, calling create_rdf() for each one
